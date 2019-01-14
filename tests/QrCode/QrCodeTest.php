@@ -37,6 +37,13 @@ class QrCodeTest extends \PHPUnit\Framework\TestCase
 		$this->assertCount(841, $qrCode->getFinal());
 	}
 
+	public function testLongData()
+	{
+		$qrCode = new QrCode(base64_encode(random_bytes(1024 * 2)));
+
+		$this->assertFalse($qrCode->isBorderDisabled());
+	}
+
 	/**
 	 * @expectedException  \Mpdf\QrCode\QrCodeException
 	 */
@@ -50,7 +57,15 @@ class QrCodeTest extends \PHPUnit\Framework\TestCase
 	 */
 	public function testEmptyValue()
 	{
-		new QrCode('', 'L');
+		new QrCode('');
+	}
+
+	/**
+	 * @expectedException  \Mpdf\QrCode\QrCodeException
+	 */
+	public function testTooLongData()
+	{
+		new QrCode(base64_encode(random_bytes(1024 * 3)));
 	}
 
 }
