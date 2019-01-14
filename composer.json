@@ -7,19 +7,42 @@
 
 	"keywords": ["php", "pdf", "mpdf", "qr", "qrcode"],
 
-	"license": "GPL-2.0-only",
+	"license": "LGPL",
 
 	"authors": [
 		{
 			"name": "Matěj Humpál",
-			"role": "Developer, maintainer"
+			"role": "maintainer"
+		},
+		{
+			"name": "Laurent Minguet",
+			"role": "author"
 		}
 	],
 
 	"require": {
-		"mpdf/mpdf": "8.0-dev"
+		"php": ">=7.1.0"
 	},
 
-	"minimum-stability": "dev"
+	"require-dev": {
+		"phpunit/phpunit": "^7.5",
+		"tracy/tracy": "^2.5",
+		"squizlabs/php_codesniffer": "^3.4"
+	},
 
+	"suggest": {
+		"ext-gd": "To output QR codes to PNG files"
+	},
+
+	"autoload": {
+
+		"psr-4": {
+			"Mpdf\\QrCode\\": "src/"
+		}
+
+	},
+
+	"autoload-dev": {
+		"files": [ "tests/functions.php" ]
+	}
 }

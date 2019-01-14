@@ -2,92 +2,206 @@
 
 namespace Mpdf\QrCode;
 
-use Mpdf\Mpdf;
-
 /**
- * Generateur de QRCode
- * (QR Code is registered trademark of DENSO WAVE INCORPORATED | http://www.denso-wave.com/qrcode/)
- * Fortement inspiré de "QRcode image PHP scripts version 0.50g (C)2000-2005,Y.Swetake"
+ * QR Code generator
  *
- * Distribué sous la licence LGPL.
- *
- * @author        Laurent MINGUET <webmaster@spipu.net>
- * @version        0.99
+ * @license LGPL
  */
 class QrCode
 {
-	private $version_mx = 40;        // numero de version maximal autorisé
-
-	private $type = 'bin';    // type de donnée
-
-	private $level = 'L';        // ECC
-
-	private $value = '';        // valeur a encoder
-
-	private $length = 0;        // taille de la valeur
-
-	private $version = 0;        // version
-
-	private $size = 0;        // dimension de la zone data
-
-	private $qr_size = 0;        // dimension du QRcode
-
-	private $data_bit = [];    // nb de bit de chacune des valeurs
-
-	private $data_val = [];    // liste des valeurs de bit différents
-
-	private $data_word = [];    // liste des valeurs tout ramené à 8bit
-
-	private $data_cur = 0;        // position courante
-
-	private $data_num = 0;        // position de la dimension
-
-	private $data_bits = 0;        // nom de bit au total
-
-	private $max_data_bit = 0;    // lilmite de nombre de bit maximal pour les datas
-
-	private $max_data_word = 0;    // lilmite de nombre de mot maximal pour les datas
-
-	private $max_word = 0;        // lilmite de nombre de mot maximal en global
-
-	private $ec = 0;
-
-	private $matrix = [];
-
-	private $matrix_remain = 0;
-
-	private $matrix_x_array = [];
-
-	private $matrix_y_array = [];
-
-	private $mask_array = [];
-
-	private $format_information_x1 = [];
-
-	private $format_information_y1 = [];
-
-	private $format_information_x2 = [];
-
-	private $format_information_y2 = [];
-
-	private $rs_block_order = [];
-
-	private $rs_ecc_codewords = 0;
-
-	private $byte_num = 0;
-
-	private $final = [];
-
-	private $disable_border = false;
 
 	/**
-	 * @param string $value message a encoder
-	 * @param string $level niveau de correction d'erreur (ECC) : L, M, Q, H
+	 * Maximal allowed QR code version
+	 *
+	 * @var int
+	 */
+	private $maxVersion = 40;
+
+	/**
+	 * ECC level
+	 *
+	 * @var string
+	 */
+	private $level;
+
+	/**
+	 * QR code contents
+	 * @var string
+	 */
+	private $value;
+
+	/**
+	 * @var int
+	 */
+	private $length;
+
+	/**
+	 * @var int
+	 */
+	private $version = 0;
+
+	/**
+	 * Zone data size
+	 *
+	 * @var int
+	 */
+	private $size = 0;
+
+	/**
+	 * QR code dimensions
+	 *
+	 * @var int
+	 */
+	private $qrSize = 0;
+
+	/**
+	 * @var int[]
+	 */
+	private $bitData;    // nb de bit de chacune des valeurs
+
+	/**
+	 * @var int[]
+	 */
+	private $valData;    // liste des valeurs de bit différents
+
+	/**
+	 * @var int[]
+	 */
+	private $wordData = [];    // liste des valeurs tout ramené à 8bit
+
+	/**
+	 * @var int Current position
+	 */
+	private $ptr;
+
+	/**
+	 * @var int
+	 */
+	private $dataPtr = 0;
+
+	/**
+	 * @var int
+	 */
+	private $bitCount;
+
+	/**
+	 * @var int
+	 */
+	private $dataBitLimit = 0;
+
+	/**
+	 * @var int
+	 */
+	private $dataWordLimit = 0;
+
+	/**
+	 * @var int
+	 */
+	private $totalWordLimit = 0;
+
+	/**
+	 * @var int
+	 */
+	private $ec = 0;
+
+	/**
+	 * @var int[]
+	 */
+	private $matrix = [];
+
+	/**
+	 * @var int
+	 */
+	private $matrixRemain = 0;
+
+	/**
+	 * @var int[]
+	 */
+	private $matrixXArray = [];
+
+	/**
+	 * @var int[]
+	 */
+	private $matrixYArray = [];
+
+	/**
+	 * @var int[]
+	 */
+	private $maskArray = [];
+
+	/**
+	 * @var int[]
+	 */
+	private $formatInformationX1 = [];
+
+	/**
+	 * @var int[]
+	 */
+	private $formatInformationY1 = [];
+
+	/**
+	 * @var int[]
+	 */
+	private $formatInformationX2 = [];
+
+	/**
+	 * @var int[]
+	 */
+	private $formatInformationY2 = [];
+
+	/**
+	 * @var int[]
+	 */
+	private $rsBlockOrder = [];
+
+	/**
+	 * @var int
+	 */
+	private $rsEccCodewords = 0;
+
+	/**
+	 * @var int
+	 */
+	private $byteCount = 0;
+
+	/**
+	 * @var int[]
+	 */
+	private $final = [];
+
+	/**
+	 * @var bool
+	 */
+	private $disableBorder = false;
+
+	/**
+	 * @var string
+	 */
+	const ERROR_CORRECTION_LOW = 'L';
+
+	/**
+	 * @var string
+	 */
+	const ERROR_CORRECTION_MEDIUM = 'M';
+
+	/**
+	 * @var string
+	 */
+	const ERROR_CORRECTION_QUARTILE = 'Q';
+
+	/**
+	 * @var string
+	 */
+	const ERROR_CORRECTION_HIGH = 'H';
+
+	/**
+	 * @param string $value Contents of the QR code
+	 * @param string $level Level of error correction (ECC) : L, M, Q, H
 	 */
 	public function __construct($value, $level = 'L')
 	{
-		if (!in_array($level, ['L', 'M', 'Q', 'H'])) {
-			throw new \Mpdf\QrCode\QrCodeException('ECC not recognized : L, M, Q, H');
+		if (!$this->isAllowedErrorCorrectionLevel($level)) {
+			throw new \Mpdf\QrCode\QrCodeException('ECC not recognized; valid values are L, M, Q and H');
 		}
 
 		$this->length = strlen($value);
@@ -98,249 +212,159 @@ class QrCode
 		$this->level = $level;
 		$this->value = $value;
 
-		$this->data_bit = [];
-		$this->data_val = [];
-		$this->data_cur = 0;
-		$this->data_bits = 0;
+		$this->bitData = [];
+		$this->valData = [];
+		$this->ptr = 0;
+		$this->bitCount = 0;
 
 		$this->encode();
-		$this->loadECC();
+		$this->loadEcc();
 		$this->makeECC();
 		$this->makeMatrix();
 	}
 
 	/**
-	 * permet de recuperer la taille du QRcode (le nombre de case de côté)
-	 *
-	 * @return    int    size of qrcode
+	 * @return int QR code dimensions
 	 */
 	public function getQrSize()
 	{
-		if ($this->disable_border) {
-			return $this->qr_size - 8;
-		} else {
-			return $this->qr_size;
+		if ($this->disableBorder) {
+			return $this->qrSize - 8;
 		}
+
+		return $this->qrSize;
 	}
 
 	public function disableBorder()
 	{
-		$this->disable_border = true;
+		$this->disableBorder = true;
 	}
 
 	/**
-	 * permet d'afficher le QRcode dans un pdf via FPDF
-	 *
-	 * @param \Mpdf\Mpdf $mpdf    objet fpdf
-	 * @param float $x position X
-	 * @param float $y position Y
-	 * @param float $w taille du qrcode
-	 * @param array $background couleur du background (R,V,B)
-	 * @param array $color couleur des cases et du border (R,V,B)
-	 *
-	 * @return boolean true;
+	 * @return bool
 	 */
-	public function displayFPDF(Mpdf $mpdf, $x, $y, $w, $background = [255, 255, 255], $color = [0, 0, 0])
+	public function isBorderDisabled()
 	{
-		$size = $w;
-		$s = $size / $this->getQrSize();
-
-		$mpdf->SetDrawColor($color[0], $color[1], $color[2]);
-		$mpdf->SetFillColor($background[0], $background[1], $background[2]);
-
-		// rectangle de fond
-		if ($this->disable_border) {
-			$s_min = 4;
-			$s_max = $this->qr_size - 4;
-			$mpdf->Rect($x, $y, $size, $size, 'F');
-		} else {
-			$s_min = 0;
-			$s_max = $this->qr_size;
-			$mpdf->Rect($x, $y, $size, $size, 'FD');
-		}
-
-		$mpdf->SetFillColor($color[0], $color[1], $color[2]);
-		for ($j = $s_min; $j < $s_max; $j++) {
-			for ($i = $s_min; $i < $s_max; $i++) {
-				if ($this->final[$i + $j * $this->qr_size + 1]) {
-					$mpdf->Rect($x + ($i - $s_min) * $s, $y + ($j - $s_min) * $s, $s, $s, 'F');
-				}
-			}
-		}
-
-		return true;
+		return $this->disableBorder;
 	}
 
 	/**
-	 * permet d'afficher le QRcode au format HTML, à utiliser avec un style CSS
-	 *
-	 * @return    boolean true;
+	 * @return mixed[]
 	 */
-	public function displayHTML()
+	public function getFinal()
 	{
-		if ($this->disable_border) {
-			$s_min = 4;
-			$s_max = $this->qr_size - 4;
-		} else {
-			$s_min = 0;
-			$s_max = $this->qr_size;
-		}
-		echo '<table class="qr" cellpadding="0" cellspacing="0">' . "\n";
-		for ($y = $s_min; $y < $s_max; $y++) {
-			echo '<tr>';
-			for ($x = $s_min; $x < $s_max; $x++) {
-				echo '<td class="' . ($this->final[$x + $y * $this->qr_size + 1] ? 'on' : 'off') . '"></td>';
-			}
-			echo '</tr>' . "\n";
-		}
-		echo '</table>';
-
-		return true;
-	}
-
-	/*
-	 * permet d'obtenir une image PNG
-	 *
-	 * @param	float	taille du qrcode
-	 * @param	array	couleur du background (R,V,B)
-	 * @param	array	couleur des cases et du border (R,V,B)
-	 * @param	string	nom du fichier de sortie. si null : sortie directe
-	 * @param	integer	qualité de 0 (aucune compression) a 9
-	 * @return	boolean	true;
-	 */
-	public function displayPNG($w = 100, $background = [255, 255, 255], $color = [0, 0, 0], $filename = null, $quality = 0)
-	{
-		if ($this->disable_border) {
-			$s_min = 4;
-			$s_max = $this->qr_size - 4;
-		} else {
-			$s_min = 0;
-			$s_max = $this->qr_size;
-		}
-		$size = $w;
-		$s = $size / ($s_max - $s_min);
-
-		// rectangle de fond
-		$im = imagecreatetruecolor($size, $size);
-		$c_case = imagecolorallocate($im, $color[0], $color[1], $color[2]);
-		$c_back = imagecolorallocate($im, $background[0], $background[1], $background[2]);
-		imagefilledrectangle($im, 0, 0, $size, $size, $c_back);
-
-		for ($j = $s_min; $j < $s_max; $j++) {
-			for ($i = $s_min; $i < $s_max; $i++) {
-				if ($this->final[$i + $j * $this->qr_size + 1]) {
-					imagefilledrectangle($im, ($i - $s_min) * $s, ($j - $s_min) * $s, ($i - $s_min + 1) * $s - 1, ($j - $s_min + 1) * $s - 1, $c_case);
-				}
-			}
-		}
-
-		if ($filename) {
-			imagepng($im, $filename, $quality);
-		} else {
-			header("Content-type: image/png");
-			imagepng($im);
-		}
-		imagedestroy($im);
-
-		return true;
+		return $this->final;
 	}
 
 	private function addData($val, $bit, $next = true)
 	{
-		$this->data_val[$this->data_cur] = $val;
-		$this->data_bit[$this->data_cur] = $bit;
-		if ($next) {
-			$this->data_cur++;
+		$this->valData[$this->ptr] = $val;
+		$this->bitData[$this->ptr] = $bit;
 
-			return $this->data_cur - 1;
-		} else {
-			return $this->data_cur;
+		if ($next) {
+			$this->ptr++;
+			return $this->ptr - 1;
 		}
+
+		return $this->ptr;
 	}
 
 	private function encode()
 	{
 		// conversion des datas
-		if (preg_match('/[^0-9]/', $this->value)) {
+		if (preg_match('/\D/', $this->value)) {
 			if (preg_match('/[^0-9A-Z \$\*\%\+\-\.\/\:]/', $this->value)) {
-				// type : bin
-				$this->type = 'bin';
+
 				$this->addData(4, 4);
 
-				// taille. il faut garder l'indice, car besoin de correction
-				$this->data_num = $this->addData($this->length, 8); /* #version 1-9 */
-				$data_num_correction = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8];
+				$this->dataPtr = $this->addData($this->length, 8); /* #version 1-9 */
+				$dataNumCorrection = [
+					0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8,
+					8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8
+				];
 
-				// datas
+				// data
 				for ($i = 0; $i < $this->length; $i++) {
 					$this->addData(ord(substr($this->value, $i, 1)), 8);
 				}
+
 			} else {
-				// type : alphanum
-				$this->type = 'alphanum';
+
 				$this->addData(2, 4);
 
-				// taille. il faut garder l'indice, car besoin de correction
-				$this->data_num = $this->addData($this->length, 9); /* #version 1-9 */
-				$data_num_correction = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4];
+				$this->dataPtr = $this->addData($this->length, 9); /* #version 1-9 */
+				$dataNumCorrection = [
+					0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
+					2, 2, 2, 2, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4
+				];
 
-				// datas
-				$an_hash = [
+				$alNumHash = [
 					'0' => 0, '1' => 1, '2' => 2, '3' => 3, '4' => 4, '5' => 5, '6' => 6, '7' => 7, '8' => 8, '9' => 9,
-					'A' => 10, 'B' => 11, 'C' => 12, 'D' => 13, 'E' => 14, 'F' => 15, 'G' => 16, 'H' => 17, 'I' => 18, 'J' => 19, 'K' => 20, 'L' => 21, 'M' => 22,
-					'N' => 23, 'O' => 24, 'P' => 25, 'Q' => 26, 'R' => 27, 'S' => 28, 'T' => 29, 'U' => 30, 'V' => 31, 'W' => 32, 'X' => 33, 'Y' => 34, 'Z' => 35,
-					' ' => 36, '$' => 37, '%' => 38, '*' => 39, '+' => 40, '-' => 41, '.' => 42, '/' => 43, ':' => 44];
+					'A' => 10, 'B' => 11, 'C' => 12, 'D' => 13, 'E' => 14, 'F' => 15, 'G' => 16, 'H' => 17, 'I' => 18,
+					'J' => 19, 'K' => 20, 'L' => 21, 'M' => 22, 'N' => 23, 'O' => 24, 'P' => 25, 'Q' => 26, 'R' => 27,
+					'S' => 28, 'T' => 29, 'U' => 30, 'V' => 31, 'W' => 32, 'X' => 33, 'Y' => 34, 'Z' => 35, ' ' => 36,
+					'$' => 37, '%' => 38, '*' => 39, '+' => 40, '-' => 41, '.' => 42, '/' => 43, ':' => 44
+				];
 
 				for ($i = 0; $i < $this->length; $i++) {
-					if (($i % 2) == 0) {
-						$this->addData($an_hash[substr($this->value, $i, 1)], 6, false);
+					if (($i % 2) === 0) {
+						$this->addData($alNumHash[substr($this->value, $i, 1)], 6, false);
 					} else {
-						$this->addData($this->data_val[$this->data_cur] * 45 + $an_hash[substr($this->value, $i, 1)], 11, true);
+						$this->addData($this->valData[$this->ptr] * 45 + $alNumHash[substr($this->value, $i, 1)], 11);
 					}
 				}
-				unset($an_hash);
 
-				if (isset($this->data_bit[$this->data_cur])) {
-					$this->data_cur++;
+				unset($alNumHash);
+
+				if (isset($this->bitData[$this->ptr])) {
+					$this->ptr++;
 				}
 			}
+
 		} else {
-			// type : num
-			$this->type = 'num';
+
 			$this->addData(1, 4);
 
-			//taille. il faut garder l'indice, car besoin de correction
-			$this->data_num = $this->addData($this->length, 10); /* #version 1-9 */
-			$data_num_correction = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4];
+			$this->dataPtr = $this->addData($this->length, 10); /* #version 1-9 */
+			$dataNumCorrection = [
+				0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
+				2, 2, 2, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4
+			];
 
-			// datas
+			// data
 			for ($i = 0; $i < $this->length; $i++) {
-				if (($i % 3) == 0) {
-					$this->addData(substr($this->value, $i, 1), 4, false);
-				} else if (($i % 3) == 1) {
-					$this->addData($this->data_val[$this->data_cur] * 10 + substr($this->value, $i, 1), 7, false);
+				if (($i % 3) === 0) {
+					$this->addData((int) substr($this->value, $i, 1), 4, false);
+				} elseif (($i % 3) === 1) {
+					$this->addData($this->valData[$this->ptr] * 10 + substr($this->value, $i, 1), 7, false);
 				} else {
-					$this->addData($this->data_val[$this->data_cur] * 10 + substr($this->value, $i, 1), 10);
+					$this->addData($this->valData[$this->ptr] * 10 + substr($this->value, $i, 1), 10);
 				}
 			}
 
-			if (isset($this->data_bit[$this->data_cur])) {
-				$this->data_cur++;
+			if (isset($this->bitData[$this->ptr])) {
+				$this->ptr++;
 			}
 		}
 
-		// calcul du nombre de bits
-		$this->data_bits = 0;
-		foreach ($this->data_bit as $bit) {
-			$this->data_bits += $bit;
+		// calculate bit count
+		$this->bitCount = 0;
+		foreach ($this->bitData as $bit) {
+			$this->bitCount += $bit;
 		}
 
 		// code ECC
-		$ec_hash = ['L' => 1, 'M' => 0, 'Q' => 3, 'H' => 2];
-		$this->ec = $ec_hash[$this->level];
+		$ecHash = [
+			static::ERROR_CORRECTION_LOW => 1,
+			static::ERROR_CORRECTION_MEDIUM => 0,
+			static::ERROR_CORRECTION_QUARTILE => 3,
+			static::ERROR_CORRECTION_HIGH => 2
+		];
 
-		// tableau de taille limite de bits
-		$max_bits = [
+		$this->ec = $ecHash[$this->level];
+
+		// bit size limit array
+		$maxBits = [
 			0, 128, 224, 352, 512, 688, 864, 992, 1232, 1456, 1728, 2032, 2320, 2672, 2920, 3320, 3624, 4056, 4504, 5016, 5352,
 			5712, 6256, 6880, 7312, 8000, 8496, 9024, 9544, 10136, 10984, 11640, 12328, 13048, 13800, 14496, 15312, 15936, 16816, 17728, 18672,
 
@@ -354,165 +378,172 @@ class QrCode
 			4096, 4544, 4912, 5312, 5744, 6032, 6464, 6968, 7288, 7880, 8264, 8920, 9368, 9848, 10288, 10832, 11408, 12016, 12656, 13328,
 		];
 
-		// determination automatique de la version necessaire
+		// version determination
 		$this->version = 1;
 		$i = 1 + 40 * $this->ec;
 		$j = $i + 39;
 		while ($i <= $j) {
-			if ($max_bits[$i] >= $this->data_bits + $data_num_correction[$this->version]) {
-				$this->max_data_bit = $max_bits[$i];
+			if ($maxBits[$i] >= $this->bitCount + $dataNumCorrection[$this->version]) {
+				$this->dataBitLimit = $maxBits[$i];
 				break;
 			}
 			$i++;
 			$this->version++;
 		}
 
-		// verification max version
-		if ($this->version > $this->version_mx) {
+		if ($this->version > $this->maxVersion) {
 			throw new \Mpdf\QrCode\QrCodeException('QrCode version too large');
 		}
 
-		// correctif sur le nombre de bits du strlen de la valeur
-		$this->data_bits += $data_num_correction[$this->version];
-		$this->data_bit[$this->data_num] += $data_num_correction[$this->version];
-		$this->max_data_word = ($this->max_data_bit / 8);
+		// strlen bits of the value number fix
+		$this->bitCount += $dataNumCorrection[$this->version];
+		$this->bitData[$this->dataPtr] += $dataNumCorrection[$this->version];
+		$this->dataWordLimit = ($this->dataBitLimit / 8);
 
-		// nombre de mots maximal
-		$max_words_array = [0, 26, 44, 70, 100, 134, 172, 196, 242, 292, 346, 404, 466, 532, 581, 655, 733, 815, 901, 991, 1085, 1156,
-			1258, 1364, 1474, 1588, 1706, 1828, 1921, 2051, 2185, 2323, 2465, 2611, 2761, 2876, 3034, 3196, 3362, 3532, 3706];
+		// maximal word counts
+		$maxWordCountArray = [
+			0, 26, 44, 70, 100, 134, 172, 196, 242, 292, 346, 404, 466, 532, 581, 655, 733, 815, 901, 991, 1085, 1156,
+			1258, 1364, 1474, 1588, 1706, 1828, 1921, 2051, 2185, 2323, 2465, 2611, 2761, 2876, 3034, 3196, 3362, 3532, 3706
+		];
 
-		$this->max_word = $max_words_array[$this->version];
+		$this->totalWordLimit = $maxWordCountArray[$this->version];
 		$this->size = 17 + 4 * $this->version;
 
-		// nettoyages divers
-		unset($max_bits);
-		unset($data_num_correction);
-		unset($max_words_array);
-		unset($ec_hash);
+		unset($maxBits, $dataNumCorrection, $maxWordCountArray, $ecHash);
 
 		// terminator
-		if ($this->data_bits <= $this->max_data_bit - 4) {
+		if ($this->bitCount <= $this->dataBitLimit - 4) {
 			$this->addData(0, 4);
-		} elseif ($this->data_bits < $this->max_data_bit) {
-			$this->addData(0, $this->max_data_bit - $this->data_bits);
-		} elseif ($this->data_bits > $this->max_data_bit) {
+		} elseif ($this->bitCount < $this->dataBitLimit) {
+			$this->addData(0, $this->dataBitLimit - $this->bitCount);
+		} elseif ($this->bitCount > $this->dataBitLimit) {
 			throw new \Mpdf\QrCode\QrCodeException('QrCode data overflow error');
 		}
 
-		// construction des mots de 8 bit
-		$this->data_word = [];
-		$this->data_word[0] = 0;
-		$nb_word = 0;
+		// construction of 8bit words
+		$this->wordData = [];
+		$this->wordData[0] = 0;
+		$wordCount = 0;
 
-		$remaining_bit = 8;
-		for ($i = 0; $i < $this->data_cur; $i++) {
-			$buffer_val = $this->data_val[$i];
-			$buffer_bit = $this->data_bit[$i];
+		$remainingBit = 8;
+		for ($i = 0; $i < $this->ptr; $i++) {
+			$bufferVal = $this->valData[$i];
+			$bufferBit = $this->bitData[$i];
 
 			$flag = true;
 			while ($flag) {
-				if ($remaining_bit > $buffer_bit) {
-					$this->data_word[$nb_word] = ((@$this->data_word[$nb_word] << $buffer_bit) | $buffer_val);
-					$remaining_bit -= $buffer_bit;
+				if ($remainingBit > $bufferBit) {
+					$this->wordData[$wordCount] = ((@$this->wordData[$wordCount] << $bufferBit) | $bufferVal);
+					$remainingBit -= $bufferBit;
 					$flag = false;
 				} else {
-					$buffer_bit -= $remaining_bit;
-					$this->data_word[$nb_word] = ((@$this->data_word[$nb_word] << $remaining_bit) | ($buffer_val >> $buffer_bit));
-					$nb_word++;
+					$bufferBit -= $remainingBit;
+					$this->wordData[$wordCount] = ((@$this->wordData[$wordCount] << $remainingBit) | ($bufferVal >> $bufferBit));
+					$wordCount++;
 
-					if ($buffer_bit == 0) {
+					if ($bufferBit === 0) {
 						$flag = false;
 					} else {
-						$buffer_val = ($buffer_val & ((1 << $buffer_bit) - 1));
+						$bufferVal &= ((1 << $bufferBit) - 1);
 					}
 
-					if ($nb_word < $this->max_data_word - 1) {
-						$this->data_word[$nb_word] = 0;
+					if ($wordCount < $this->dataWordLimit - 1) {
+						$this->wordData[$wordCount] = 0;
 					}
-					$remaining_bit = 8;
+					$remainingBit = 8;
 				}
 			}
 		}
 
-		// completion du dernier mot si incomplet
-		if ($remaining_bit < 8) {
-			$this->data_word[$nb_word] = $this->data_word[$nb_word] << $remaining_bit;
+		// completion of the last word if incomplete
+		if ($remainingBit < 8) {
+			$this->wordData[$wordCount] <<= $remainingBit;
 		} else {
-			$nb_word--;
+			$wordCount--;
 		}
 
-		// remplissage du reste
-		if ($nb_word < $this->max_data_word - 1) {
+		// fill the rest
+		if ($wordCount < $this->dataWordLimit - 1) {
 			$flag = true;
-			while ($nb_word < $this->max_data_word - 1) {
-				$nb_word++;
+			while ($wordCount < $this->dataWordLimit - 1) {
+				$wordCount++;
 				if ($flag) {
-					$this->data_word[$nb_word] = 236;
+					$this->wordData[$wordCount] = 236;
 				} else {
-					$this->data_word[$nb_word] = 17;
+					$this->wordData[$wordCount] = 17;
 				}
 				$flag = !$flag;
 			}
 		}
 	}
 
-	private function loadECC()
+	private function loadEcc()
 	{
-		$matrix_remain_bit = [0, 0, 7, 7, 7, 7, 7, 0, 0, 0, 0, 0, 0, 0, 3, 3, 3, 3, 3, 3, 3, 4, 4, 4, 4, 4, 4, 4, 3, 3, 3, 3, 3, 3, 3, 0, 0, 0, 0, 0, 0];
-		$this->matrix_remain = $matrix_remain_bit[$this->version];
-		unset($matrix_remain_bit);
+		$matrixRemainBits = [0, 0, 7, 7, 7, 7, 7, 0, 0, 0, 0, 0, 0, 0, 3, 3, 3, 3, 3, 3, 3, 4, 4, 4, 4, 4, 4, 4, 3, 3, 3, 3, 3, 3, 3, 0, 0, 0, 0, 0, 0];
 
-		// lecture du fichier : data file of geometry & mask for version V ,ecc level N
-		$this->byte_num = $this->matrix_remain + 8 * $this->max_word;
-		$filename = __DIR__ . "/data/qrv" . $this->version . "_" . $this->ec . ".dat";
-		$fp1 = fopen($filename, "rb");
-		$this->matrix_x_array = unpack("C*", fread($fp1, $this->byte_num));
-		$this->matrix_y_array = unpack("C*", fread($fp1, $this->byte_num));
-		$this->mask_array = unpack("C*", fread($fp1, $this->byte_num));
-		$this->format_information_x2 = unpack("C*", fread($fp1, 15));
-		$this->format_information_y2 = unpack("C*", fread($fp1, 15));
-		$this->rs_ecc_codewords = ord(fread($fp1, 1));
-		$this->rs_block_order = unpack("C*", fread($fp1, 128));
+		$this->matrixRemain = $matrixRemainBits[$this->version];
+		unset($matrixRemainBits);
+
+		// data file of geometry & mask for version V, ecc level N
+		$this->byteCount = $this->matrixRemain + 8 * $this->totalWordLimit;
+
+		$filename = __DIR__ . '/../data/qrv' . $this->version . '_' . $this->ec . '.dat';
+
+		$fp1 = fopen($filename, 'rb');
+
+		$this->matrixXArray = unpack('C*', fread($fp1, $this->byteCount));
+		$this->matrixYArray = unpack('C*', fread($fp1, $this->byteCount));
+		$this->maskArray = unpack('C*', fread($fp1, $this->byteCount));
+		$this->formatInformationX2 = unpack('C*', fread($fp1, 15));
+		$this->formatInformationY2 = unpack('C*', fread($fp1, 15));
+		$this->rsEccCodewords = ord(fread($fp1, 1));
+		$this->rsBlockOrder = unpack('C*', fread($fp1, 128));
+
 		fclose($fp1);
-		$this->format_information_x1 = [0, 1, 2, 3, 4, 5, 7, 8, 8, 8, 8, 8, 8, 8, 8];
-		$this->format_information_y1 = [8, 8, 8, 8, 8, 8, 8, 8, 7, 5, 4, 3, 2, 1, 0];
+
+		$this->formatInformationX1 = [0, 1, 2, 3, 4, 5, 7, 8, 8, 8, 8, 8, 8, 8, 8];
+		$this->formatInformationY1 = [8, 8, 8, 8, 8, 8, 8, 8, 7, 5, 4, 3, 2, 1, 0];
 	}
 
 	private function makeECC()
 	{
-		// lecture du fichier : data file of caluclatin tables for RS encoding
+		// data file of caluclatin tables for RS encoding
 		$rs_cal_table_array = [];
-		$filename = __DIR__ . "/data/rsc" . $this->rs_ecc_codewords . ".dat";
-		$fp0 = fopen($filename, "rb");
+
+		$filename = __DIR__ . '/../data/rsc' . $this->rsEccCodewords . '.dat';
+
+		$fp0 = fopen($filename, 'rb');
 		for ($i = 0; $i < 256; $i++) {
-			$rs_cal_table_array[$i] = fread($fp0, $this->rs_ecc_codewords);
+			$rs_cal_table_array[$i] = fread($fp0, $this->rsEccCodewords);
 		}
 		fclose($fp0);
 
-		$max_data_codewords = count($this->data_word);
+		$max_data_codewords = count($this->wordData);
 
 		// preparation
 		$j = 0;
 		$rs_block_number = 0;
-		$rs_temp[0] = "";
+		$rs_temp[0] = '';
+
 		for ($i = 0; $i < $max_data_codewords; $i++) {
-			$rs_temp[$rs_block_number] .= chr($this->data_word[$i]);
+			$rs_temp[$rs_block_number] .= chr($this->wordData[$i]);
 			$j++;
-			if ($j >= $this->rs_block_order[$rs_block_number + 1] - $this->rs_ecc_codewords) {
+			if ($j >= $this->rsBlockOrder[$rs_block_number + 1] - $this->rsEccCodewords) {
 				$j = 0;
 				$rs_block_number++;
-				$rs_temp[$rs_block_number] = "";
+				$rs_temp[$rs_block_number] = '';
 			}
 		}
 
 		// make
-		$rs_block_order_num = count($this->rs_block_order);
+		$rs_block_order_num = count($this->rsBlockOrder);
+		$data = [];
 
 		for ($rs_block_number = 0; $rs_block_number < $rs_block_order_num; $rs_block_number++) {
-			$rs_codewords = $this->rs_block_order[$rs_block_number + 1];
-			$rs_data_codewords = $rs_codewords - $this->rs_ecc_codewords;
+			$rs_codewords = $this->rsBlockOrder[$rs_block_number + 1];
+			$rs_data_codewords = $rs_codewords - $this->rsEccCodewords;
 
-			$rstemp = $rs_temp[$rs_block_number] . str_repeat(chr(0), $this->rs_ecc_codewords);
+			$rstemp = $rs_temp[$rs_block_number] . str_repeat(chr(0), $this->rsEccCodewords);
 			$padding_data = str_repeat(chr(0), $rs_data_codewords);
 
 			$j = $rs_data_codewords;
@@ -529,8 +560,10 @@ class QrCode
 				$j--;
 			}
 
-			$this->data_word = array_merge($this->data_word, unpack("C*", $rstemp));
+			$data[] = unpack('C*', $rstemp);
 		}
+
+		$this->wordData = array_merge($this->wordData, ...$data);
 	}
 
 	private function makeMatrix()
@@ -538,31 +571,31 @@ class QrCode
 		// preparation
 		$this->matrix = array_fill(0, $this->size, array_fill(0, $this->size, 0));
 
-		// mettre les words
-		for ($i = 0; $i < $this->max_word; $i++) {
-			$word = $this->data_word[$i];
+		// put in words
+		for ($i = 0; $i < $this->totalWordLimit; $i++) {
+			$word = $this->wordData[$i];
 			for ($j = 8; $j > 0; $j--) {
 				$bit_pos = ($i << 3) + $j;
-				$this->matrix[$this->matrix_x_array[$bit_pos]][$this->matrix_y_array[$bit_pos]] = ((255 * ($word & 1)) ^ $this->mask_array[$bit_pos]);
-				$word = $word >> 1;
+				$this->matrix[$this->matrixXArray[$bit_pos]][$this->matrixYArray[$bit_pos]] = ((255 * ($word & 1)) ^ $this->maskArray[$bit_pos]);
+				$word >>= 1;
 			}
 		}
 
-		for ($k = $this->matrix_remain; $k > 0; $k--) {
-			$bit_pos = $k + ($this->max_word << 3);
-			$this->matrix[$this->matrix_x_array[$bit_pos]][$this->matrix_y_array[$bit_pos]] = (255 ^ $this->mask_array[$bit_pos]);
+		for ($k = $this->matrixRemain; $k > 0; $k--) {
+			$bit_pos = $k + ($this->totalWordLimit << 3);
+			$this->matrix[$this->matrixXArray[$bit_pos]][$this->matrixYArray[$bit_pos]] = (255 ^ $this->maskArray[$bit_pos]);
 		}
 
 		// mask select
 		$min_demerit_score = 0;
-		$hor_master = "";
-		$ver_master = "";
+		$hor_master = '';
+		$ver_master = '';
 		$k = 0;
 		while ($k < $this->size) {
 			$l = 0;
 			while ($l < $this->size) {
-				$hor_master = $hor_master . chr($this->matrix[$l][$k]);
-				$ver_master = $ver_master . chr($this->matrix[$k][$l]);
+				$hor_master .= chr($this->matrix[$l][$k]);
+				$ver_master .= chr($this->matrix[$k][$l]);
 				$l++;
 			}
 			$k++;
@@ -591,19 +624,21 @@ class QrCode
 			$ver = chunk_split(~$ver, $this->size, chr(170));
 			$hor = $hor . chr(170) . $ver;
 
-			$n1_search = "/" . str_repeat(chr(255), 5) . "+|" . str_repeat(chr($bit_r), 5) . "+/";
+			$n1_search = '/' . str_repeat(chr(255), 5) . '+|' . str_repeat(chr($bit_r), 5) . '+/';
 			$n3_search = chr($bit_r) . chr(255) . chr($bit_r) . chr($bit_r) . chr($bit_r) . chr(255) . chr($bit_r);
 
 			$demerit_n3 = substr_count($hor, $n3_search) * 40;
-			$demerit_n4 = floor(abs(((100 * (substr_count($ver, chr($bit_r)) / ($this->byte_num))) - 50) / 5)) * 10;
+			$demerit_n4 = floor(abs(((100 * (substr_count($ver, chr($bit_r)) / $this->byteCount)) - 50) / 5)) * 10;
 
-			$n2_search1 = "/" . chr($bit_r) . chr($bit_r) . "+/";
-			$n2_search2 = "/" . chr(255) . chr(255) . "+/";
+			$n2_search1 = '/' . chr($bit_r) . chr($bit_r) . '+/';
+			$n2_search2 = '/' . chr(255) . chr(255) . '+/';
 			$demerit_n2 = 0;
+
 			preg_match_all($n2_search1, $ver_and, $ptn_temp);
 			foreach ($ptn_temp[0] as $str_temp) {
 				$demerit_n2 += (strlen($str_temp) - 1);
 			}
+
 			$ptn_temp = [];
 			preg_match_all($n2_search2, $ver_or, $ptn_temp);
 			foreach ($ptn_temp[0] as $str_temp) {
@@ -619,7 +654,7 @@ class QrCode
 			}
 			$demerit_score = $demerit_n1 + $demerit_n2 + $demerit_n3 + $demerit_n4;
 
-			if ($demerit_score <= $min_demerit_score || $i == 0) {
+			if ($demerit_score <= $min_demerit_score || $i === 0) {
 				$mask_number = $i;
 				$min_demerit_score = $demerit_score;
 			}
@@ -630,32 +665,45 @@ class QrCode
 		$mask_content = 1 << $mask_number;
 
 		$format_information_value = (($this->ec << 3) | $mask_number);
-		$format_information_array = ["101010000010010", "101000100100101",
-			"101111001111100", "101101101001011", "100010111111001", "100000011001110",
-			"100111110010111", "100101010100000", "111011111000100", "111001011110011",
-			"111110110101010", "111100010011101", "110011000101111", "110001100011000",
-			"110110001000001", "110100101110110", "001011010001001", "001001110111110",
-			"001110011100111", "001100111010000", "000011101100010", "000001001010101",
-			"000110100001100", "000100000111011", "011010101011111", "011000001101000",
-			"011111100110001", "011101000000110", "010010010110100", "010000110000011",
-			"010111011011010", "010101111101101"];
+		$format_information_array = [
+			'101010000010010', '101000100100101',
+			'101111001111100', '101101101001011', '100010111111001', '100000011001110',
+			'100111110010111', '100101010100000', '111011111000100', '111001011110011',
+			'111110110101010', '111100010011101', '110011000101111', '110001100011000',
+			'110110001000001', '110100101110110', '001011010001001', '001001110111110',
+			'001110011100111', '001100111010000', '000011101100010', '000001001010101',
+			'000110100001100', '000100000111011', '011010101011111', '011000001101000',
+			'011111100110001', '011101000000110', '010010010110100', '010000110000011',
+			'010111011011010', '010101111101101'
+		];
 
 		for ($i = 0; $i < 15; $i++) {
 			$content = substr($format_information_array[$format_information_value], $i, 1);
 
-			$this->matrix[$this->format_information_x1[$i]][$this->format_information_y1[$i]] = $content * 255;
-			$this->matrix[$this->format_information_x2[$i + 1]][$this->format_information_y2[$i + 1]] = $content * 255;
+			$this->matrix[$this->formatInformationX1[$i]][$this->formatInformationY1[$i]] = $content * 255;
+			$this->matrix[$this->formatInformationX2[$i + 1]][$this->formatInformationY2[$i + 1]] = $content * 255;
 		}
 
-		$this->final = unpack("C*", file_get_contents(__DIR__ . '/data/modele' . $this->version . '.dat'));
-		$this->qr_size = $this->size + 8;
+		$this->final = unpack('C*', file_get_contents(__DIR__ . '/../data/modele' . $this->version . '.dat'));
+		$this->qrSize = $this->size + 8;
 
 		for ($x = 0; $x < $this->size; $x++) {
 			for ($y = 0; $y < $this->size; $y++) {
 				if ($this->matrix[$x][$y] & $mask_content) {
-					$this->final[($x + 4) + ($y + 4) * $this->qr_size + 1] = true;
+					$this->final[($x + 4) + ($y + 4) * $this->qrSize + 1] = true;
 				}
 			}
 		}
 	}
+
+	private function isAllowedErrorCorrectionLevel($level)
+	{
+		return \in_array($level, [
+			static::ERROR_CORRECTION_LOW,
+			static::ERROR_CORRECTION_MEDIUM,
+			static::ERROR_CORRECTION_QUARTILE,
+			static::ERROR_CORRECTION_HIGH,
+		], true);
+	}
+
 }
