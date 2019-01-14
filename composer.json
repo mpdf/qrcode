@@ -1,0 +1,25 @@
+{
+
+	"name": "mpdf/qrcode",
+	"type": "library",
+
+	"description": "QR code generator for mPDF",
+
+	"keywords": ["php", "pdf", "mpdf", "qr", "qrcode"],
+
+	"license": "GPL-2.0-only",
+
+	"authors": [
+		{
+			"name": "Matěj Humpál",
+			"role": "Developer, maintainer"
+		}
+	],
+
+	"require": {
+		"mpdf/mpdf": "8.0-dev"
+	},
+
+	"minimum-stability": "dev"
+
+}
