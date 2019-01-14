@@ -7,7 +7,7 @@
 
 	"keywords": ["php", "pdf", "mpdf", "qr", "qrcode"],
 
-	"license": "LGPL",
+	"license": ["LGPL-2.1-or-later"],
 
 	"authors": [
 		{
