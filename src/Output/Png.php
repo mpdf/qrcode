@@ -12,47 +12,47 @@ class Png
 	 * @param int QR code width in pixels
 	 * @param int[] $background RGB background color
 	 * @param int[] $color RGB foreground and border color
-	 * @param string|null Filename of output file or empty to display directly
 	 * @param int Compression level (0 - no compression, 9 - greatest compression)
+	 *
+	 * @return string Binary image data
 	 */
-	public function output(QrCode $qrCode, $w = 100, $background = [255, 255, 255], $color = [0, 0, 0], $filename = null, $quality = 0)
+	public function output(QrCode $qrCode, $w = 100, $background = [255, 255, 255], $color = [0, 0, 0], $quality = 0)
 	{
 		$qrSize = $qrCode->getQrSize();
 		$final = $qrCode->getFinal();
 
 		if ($qrCode->isBorderDisabled()) {
-			$s_min = 4;
-			$s_max = $qrSize - 4;
+			$minSize = 4;
+			$maxSize = $qrSize - 4;
 		} else {
-			$s_min = 0;
-			$s_max = $qrSize;
+			$minSize = 0;
+			$maxSize = $qrSize;
 		}
 
 		$size = $w;
-		$s = $size / ($s_max - $s_min);
+		$s = $size / ($maxSize - $minSize);
 
-		// rectangle de fond
 		$im = imagecreatetruecolor($size, $size);
-		$c_case = imagecolorallocate($im, $color[0], $color[1], $color[2]);
-		$c_back = imagecolorallocate($im, $background[0], $background[1], $background[2]);
-		imagefilledrectangle($im, 0, 0, $size, $size, $c_back);
+		$foregroundColor = imagecolorallocate($im, $color[0], $color[1], $color[2]);
+		$backgroundColor = imagecolorallocate($im, $background[0], $background[1], $background[2]);
+		imagefilledrectangle($im, 0, 0, $size, $size, $backgroundColor);
 
-		for ($j = $s_min; $j < $s_max; $j++) {
-			for ($i = $s_min; $i < $s_max; $i++) {
+		for ($j = $minSize; $j < $maxSize; $j++) {
+			for ($i = $minSize; $i < $maxSize; $i++) {
 				if ($final[$i + $j * $qrSize + 1]) {
-					imagefilledrectangle($im, ($i - $s_min) * $s, ($j - $s_min) * $s, ($i - $s_min + 1) * $s - 1, ($j - $s_min + 1) * $s - 1, $c_case);
+					imagefilledrectangle($im, ($i - $minSize) * $s, ($j - $minSize) * $s, ($i - $minSize + 1) * $s - 1, ($j - $minSize + 1) * $s - 1, $foregroundColor);
 				}
 			}
 		}
 
-		if ($filename) {
-			imagepng($im, $filename, $quality);
-		} else {
-			header('Content-type: image/png');
-			imagepng($im);
-		}
+		ob_start();
+		imagepng($im);
+		$data = ob_get_contents();
+		ob_end_clean();
 
 		imagedestroy($im);
+
+		return $data;
 	}
 
 }

@@ -20,18 +20,18 @@ class Html
 		$final = $qrCode->getFinal();
 
 		if ($qrCode->isBorderDisabled()) {
-			$s_min = 4;
-			$s_max = $qrSize - 4;
+			$minSize = 4;
+			$maxSize = $qrSize - 4;
 		} else {
-			$s_min = 0;
-			$s_max = $qrSize;
+			$minSize = 0;
+			$maxSize = $qrSize;
 		}
 
 		$s .= '<table class="qr" cellpadding="0" cellspacing="0">' . "\n";
 
-		for ($y = $s_min; $y < $s_max; $y++) {
+		for ($y = $minSize; $y < $maxSize; $y++) {
 			$s .= '<tr>';
-			for ($x = $s_min; $x < $s_max; $x++) {
+			for ($x = $minSize; $x < $maxSize; $x++) {
 				$s .= '<td class="' . ($final[$x + $y * $qrSize + 1] ? 'on' : 'off') . '"></td>';
 			}
 			$s .= '</tr>' . "\n";

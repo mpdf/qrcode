@@ -30,12 +30,12 @@ class Mpdf
 
 		// rectangle de fond
 		if ($qrCode->isBorderDisabled()) {
-			$s_min = 4;
-			$s_max = $qrSize - 4;
+			$minSize = 4;
+			$maxSize = $qrSize - 4;
 			$mpdf->Rect($x, $y, $size, $size, 'F');
 		} else {
-			$s_min = 0;
-			$s_max = $qrSize;
+			$minSize = 0;
+			$maxSize = $qrSize;
 			$mpdf->Rect($x, $y, $size, $size, 'FD');
 		}
 
@@ -43,10 +43,10 @@ class Mpdf
 
 		$final = $qrCode->getFinal();
 
-		for ($j = $s_min; $j < $s_max; $j++) {
-			for ($i = $s_min; $i < $s_max; $i++) {
+		for ($j = $minSize; $j < $maxSize; $j++) {
+			for ($i = $minSize; $i < $maxSize; $i++) {
 				if ($final[$i + $j * $qrSize + 1]) {
-					$mpdf->Rect($x + ($i - $s_min) * $s, $y + ($j - $s_min) * $s, $s, $s, 'F');
+					$mpdf->Rect($x + ($i - $minSize) * $s, $y + ($j - $minSize) * $s, $s, $s, 'F');
 				}
 			}
 		}
