@@ -27,12 +27,13 @@ class Html
 			$maxSize = $qrSize;
 		}
 
-		$s .= '<table class="qr" cellpadding="0" cellspacing="0">' . "\n";
+		$s .= '<table class="qr" cellpadding="0" cellspacing="0" style="font-size: 1px;">' . "\n";
 
 		for ($y = $minSize; $y < $maxSize; $y++) {
-			$s .= '<tr>';
+			$s .= '<tr style="height: 4px;">';
 			for ($x = $minSize; $x < $maxSize; $x++) {
-				$s .= '<td class="' . ($final[$x + $y * $qrSize + 1] ? 'on' : 'off') . '"></td>';
+				$on = $final[$x + $y * $qrSize + 1];
+				$s .= '<td class="' . ($on ? 'on' : 'off') . '" style="width: 4px; background-color: ' . ($on ? '#000' : '#FFF') . '">&nbsp;</td>';
 			}
 			$s .= '</tr>' . "\n";
 		}
