@@ -11,7 +11,7 @@ class Mpdf
 	/**
 	 * Write the QR code into an Mpdf\Mpdf object
 	 *
-	 * @param \Mpdf\QrCode\QrCode QR code instance
+	 * @param \Mpdf\QrCode\QrCode $qrCode QR code instance
 	 * @param \Mpdf\Mpdf $mpdf Mpdf instance
 	 * @param float $x position X
 	 * @param float $y position Y

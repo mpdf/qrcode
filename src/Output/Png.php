@@ -8,8 +8,8 @@ class Png
 {
 
 	/**
-	 * @param \Mpdf\QrCode\QrCode QR code instance
-	 * @param int QR code width in pixels
+	 * @param \Mpdf\QrCode\QrCode $qrCode QR code instance
+	 * @param int $w QR code width in pixels
 	 * @param int[] $background RGB background color
 	 * @param int[] $color RGB foreground and border color
 	 * @param int $compression Level (0 - no compression, 9 - greatest compression)

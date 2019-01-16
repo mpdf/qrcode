@@ -316,9 +316,9 @@ class QrCode
 
 				for ($i = 0; $i < $this->length; $i++) {
 					if (($i % 2) === 0) {
-						$this->addData($alNumHash[substr($this->value, $i, 1)], 6, false);
+						$this->addData($alNumHash[$this->value[$i]], 6, false);
 					} else {
-						$this->addData($this->valData[$this->ptr] * 45 + $alNumHash[substr($this->value, $i, 1)], 11);
+						$this->addData($this->valData[$this->ptr] * 45 + $alNumHash[$this->value[$i]], 11);
 					}
 				}
 
@@ -342,11 +342,11 @@ class QrCode
 			// data
 			for ($i = 0; $i < $this->length; $i++) {
 				if (($i % 3) === 0) {
-					$this->addData((int) substr($this->value, $i, 1), 4, false);
+					$this->addData((int) $this->value[$i], 4, false);
 				} elseif (($i % 3) === 1) {
-					$this->addData($this->valData[$this->ptr] * 10 + substr($this->value, $i, 1), 7, false);
+					$this->addData($this->valData[$this->ptr] * 10 + (int) $this->value[$i], 7, false);
 				} else {
-					$this->addData($this->valData[$this->ptr] * 10 + substr($this->value, $i, 1), 10);
+					$this->addData($this->valData[$this->ptr] * 10 + (int) $this->value[$i], 10);
 				}
 			}
 
@@ -556,7 +556,7 @@ class QrCode
 
 			$j = $rs_data_codewords;
 			while ($j > 0) {
-				$first = ord(substr($rstemp, 0, 1));
+				$first = ord($rstemp[0]);
 
 				if ($first) {
 					$left_chr = substr($rstemp, 1);
@@ -612,6 +612,7 @@ class QrCode
 		$i = 0;
 		$all_matrix = $this->size * $this->size;
 
+		$mask_number = 0;
 		while ($i < 8) {
 			$demerit_n1 = 0;
 			$ptn_temp = [];
@@ -686,7 +687,7 @@ class QrCode
 		];
 
 		for ($i = 0; $i < 15; $i++) {
-			$content = substr($format_information_array[$format_information_value], $i, 1);
+			$content = (int) $format_information_array[$format_information_value][$i];
 
 			$this->matrix[$this->formatInformationX1[$i]][$this->formatInformationY1[$i]] = $content * 255;
 			$this->matrix[$this->formatInformationX2[$i + 1]][$this->formatInformationY2[$i + 1]] = $content * 255;
