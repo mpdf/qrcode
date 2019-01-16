@@ -2,4 +2,4 @@
 
 require_once __DIR__ . '/../vendor/autoload.php';
 
-Tracy\Debugger::enable(Tracy\Debugger::DEVELOPMENT);
+// Tracy\Debugger::enable(Tracy\Debugger::DEVELOPMENT);
