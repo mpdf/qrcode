@@ -39,7 +39,7 @@ class MpdfTest extends \PHPUnit\Framework\TestCase
 
 		$mpdf->shouldReceive('SetDrawColor')->once();
 		$mpdf->shouldReceive('SetFillColor')->twice();
-		$mpdf->shouldReceive('Rect')->times(57);
+		$mpdf->shouldReceive('Rect')->times(233);
 
 		$output = new Mpdf();
 
@@ -71,7 +71,7 @@ class MpdfTest extends \PHPUnit\Framework\TestCase
 
 		$mpdf->shouldReceive('SetDrawColor')->once();
 		$mpdf->shouldReceive('SetFillColor')->twice();
-		$mpdf->shouldReceive('Rect')->times(50);
+		$mpdf->shouldReceive('Rect')->times(217);
 
 		$output = new Mpdf();
 

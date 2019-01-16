@@ -23,12 +23,11 @@ class Mpdf
 	{
 		$size = $w;
 		$qrSize = $qrCode->getQrSize();
-		$s = $size / $qrSize;
+		$s = $size / $qrCode->getQrDimensions();
 
 		$mpdf->SetDrawColor($color[0], $color[1], $color[2]);
 		$mpdf->SetFillColor($background[0], $background[1], $background[2]);
 
-		// rectangle de fond
 		if ($qrCode->isBorderDisabled()) {
 			$minSize = 4;
 			$maxSize = $qrSize - 4;

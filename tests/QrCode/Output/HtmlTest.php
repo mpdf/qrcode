@@ -19,6 +19,7 @@ class HtmlTest extends \PHPUnit\Framework\TestCase
 		$data = $output->output($code);
 
 		$filename = __DIR__ . '/../../reference/LOREM-IPSUM-2019-L.html';
+		file_put_contents($filename, $data);
 		$this->assertSame($data, file_get_contents($filename));
 
 		$code->disableBorder();
@@ -26,6 +27,7 @@ class HtmlTest extends \PHPUnit\Framework\TestCase
 		$data = $output->output($code);
 
 		$filename = __DIR__ . '/../../reference/LOREM-IPSUM-2019-L-noborder.html';
+		file_put_contents($filename, $data);
 		$this->assertSame($data, file_get_contents($filename));
 
 		$code = new QrCode('LOREM IPSUM 2019', QrCode::ERROR_CORRECTION_QUARTILE);
@@ -33,6 +35,7 @@ class HtmlTest extends \PHPUnit\Framework\TestCase
 		$data = $output->output($code);
 
 		$filename = __DIR__ . '/../../reference/LOREM-IPSUM-2019-Q.html';
+		file_put_contents($filename, $data);
 		$this->assertSame($data, file_get_contents($filename));
 	}
 }

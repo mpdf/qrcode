@@ -18,7 +18,8 @@ class QrCodeTest extends \PHPUnit\Framework\TestCase
 		$qrCode->disableBorder();
 
 		$this->assertTrue($qrCode->isBorderDisabled());
-		$this->assertSame(21, $qrCode->getQrSize());
+		$this->assertSame(21, $qrCode->getQrDimensions());
+		$this->assertSame(29, $qrCode->getQrSize());
 	}
 
 	public function testQrCodeBin()

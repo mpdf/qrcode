@@ -224,14 +224,22 @@ class QrCode
 	}
 
 	/**
-	 * @return int QR code dimensions
+	 * @return int QR code dimensions concerning disabled border
 	 */
-	public function getQrSize()
+	public function getQrDimensions()
 	{
 		if ($this->disableBorder) {
 			return $this->qrSize - 8;
 		}
 
+		return $this->qrSize;
+	}
+
+	/**
+	 * @return int QR code dimensions
+	 */
+	public function getQrSize()
+	{
 		return $this->qrSize;
 	}
 
