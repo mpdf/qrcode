@@ -32,8 +32,8 @@ class Svg
         $svg = new SimpleXMLElement('<svg></svg>');
         $svg->addAttribute('version', '1.1');
         $svg->addAttribute('xmlns', 'http://www.w3.org/2000/svg');
-        $svg->addAttribute('width', $qrSize);
-        $svg->addAttribute('height', $qrSize);
+        $svg->addAttribute('width', $maxSize - $minSize);
+        $svg->addAttribute('height', $maxSize - $minSize);
 
         $this->addChild(
             $svg,
@@ -60,20 +60,41 @@ class Svg
         );
 
         for ($row = $minSize; $row < $maxSize; $row++) {
+            // Simple compression: pixels in a row will be compressed into the same rectangle.
+            $startX = null;
             for ($column = $minSize; $column < $maxSize; $column++) {
                 if ($final[$column + $row * $qrSize + 1]) {
+                    if ($startX === null) {
+                        $startX = ($column - $minSize) * $rectSize;
+                    }
+                } elseif ($startX !== null) {
                     $this->addChild(
                         $svg,
                         'rect',
                         [
-                            'x'      => ($column - $minSize) * $rectSize,
+                            'x'      => $startX,
                             'y'      => ($row - $minSize) * $rectSize,
-                            'width'  => $rectSize,
+                            'width'  => ($column - $minSize) * $rectSize - $startX,
                             'height' => $rectSize,
                             'fill'   => $foregroundColor,
                         ]
                     );
+                    $startX = null;
                 }
+            }
+
+            if ($startX !== null) {
+                $this->addChild(
+                    $svg,
+                    'rect',
+                    [
+                        'x'      => $startX,
+                        'y'      => ($row - $minSize) * $rectSize,
+                        'width'  => ($column - $minSize) * $rectSize - $startX,
+                        'height' => $rectSize,
+                        'fill'   => $foregroundColor,
+                    ]
+                );
             }
         }
 

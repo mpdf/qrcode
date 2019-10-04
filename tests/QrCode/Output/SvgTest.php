@@ -17,11 +17,7 @@ class SvgTest extends \PHPUnit\Framework\TestCase
 
         $data = $output->output($code);
 
-        file_put_contents(__DIR__ . '/LOREM-IPSUM-2019-L.svg', $data);
-        die();
-
         $filename = __DIR__ . '/../../reference/LOREM-IPSUM-2019-L.svg';
-        file_put_contents($filename, $data);
         $this->assertSame($data, file_get_contents($filename));
 
         $code->disableBorder();
@@ -29,7 +25,6 @@ class SvgTest extends \PHPUnit\Framework\TestCase
         $data = $output->output($code);
 
         $filename = __DIR__ . '/../../reference/LOREM-IPSUM-2019-L-noborder.svg';
-        file_put_contents($filename, $data);
         $this->assertSame($data, file_get_contents($filename));
 
         $code = new QrCode('LOREM IPSUM 2019', QrCode::ERROR_CORRECTION_QUARTILE);
@@ -37,7 +32,6 @@ class SvgTest extends \PHPUnit\Framework\TestCase
         $data = $output->output($code);
 
         $filename = __DIR__ . '/../../reference/LOREM-IPSUM-2019-Q.svg';
-        file_put_contents($filename, $data);
         $this->assertSame($data, file_get_contents($filename));
     }
 }
