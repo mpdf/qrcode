@@ -8,13 +8,38 @@ use SimpleXMLElement;
 class Svg
 {
     /**
+     * We need a little bit of overlap of each rectangle
+     * because otherwise you'll start to see fine lines between each rectangle.
+     *
+     * @var float
+     */
+    protected $overlap = 0.02;
+
+    /**
+     * @return float
+     */
+    public function getOverlap()
+    {
+        return $this->overlapPercent;
+    }
+
+    /**
+     * @param float $overlap
+     */
+    public function setOverlap($overlap)
+    {
+        $this->overlap = $overlap;
+    }
+
+    /**
      * @param QrCode $qrCode     QR code instance
-     * @param string $background the background color, e. g. "white", "rgb(0,0,0)" or "cmyk(0,0,0,0)"
-     * @param string $color      the foreground and border color, e. g. "black", "rgb(255,255,255)" or "cmyk(0,0,0,100)"
+     * @param int    $size       The width / height of the resulting SVG
+     * @param string $background The background color, e. g. "white", "rgb(0,0,0)" or "cmyk(0,0,0,0)"
+     * @param string $color      The foreground and border color, e. g. "black", "rgb(255,255,255)" or "cmyk(0,0,0,100)"
      *
      * @return string Binary image data
      */
-    public function output(QrCode $qrCode, $background = 'white', $color = 'black')
+    public function output(QrCode $qrCode, $size = 100, $background = 'white', $color = 'black')
     {
         $qrSize = $qrCode->getQrSize();
         $final  = $qrCode->getFinal();
@@ -27,13 +52,13 @@ class Svg
             $maxSize = $qrSize;
         }
 
-        $rectSize = 1;
+        $rectSize = $size / ($maxSize - $minSize);
 
         $svg = new SimpleXMLElement('<svg></svg>');
         $svg->addAttribute('version', '1.1');
         $svg->addAttribute('xmlns', 'http://www.w3.org/2000/svg');
-        $svg->addAttribute('width', $maxSize - $minSize);
-        $svg->addAttribute('height', $maxSize - $minSize);
+        $svg->addAttribute('width', $size);
+        $svg->addAttribute('height', $size);
 
         $this->addChild(
             $svg,
@@ -41,8 +66,8 @@ class Svg
             [
                 'x'      => 0,
                 'y'      => 0,
-                'width'  => $qrSize,
-                'height' => $qrSize,
+                'width'  => $size,
+                'height' => $size,
                 'fill'   => $background,
             ]
         );
@@ -53,7 +78,7 @@ class Svg
             for ($column = $minSize; $column < $maxSize; $column++) {
                 if ($final[$column + $row * $qrSize + 1]) {
                     if ($startX === null) {
-                        $startX = ($column - $minSize) * $rectSize;
+                        $startX = ($column - $minSize - $this->overlap) * $rectSize;
                     }
                 } elseif ($startX !== null) {
                     $this->addChild(
@@ -61,9 +86,9 @@ class Svg
                         'rect',
                         [
                             'x'      => $startX,
-                            'y'      => ($row - $minSize) * $rectSize,
-                            'width'  => ($column - $minSize) * $rectSize - $startX,
-                            'height' => $rectSize,
+                            'y'      => ($row - $minSize - $this->overlap) * $rectSize,
+                            'width'  => ($column - $minSize + $this->overlap) * $rectSize - $startX,
+                            'height' => (1 + $this->overlap) * $rectSize,
                             'fill'   => $color,
                         ]
                     );
@@ -77,9 +102,9 @@ class Svg
                     'rect',
                     [
                         'x'      => $startX,
-                        'y'      => ($row - $minSize) * $rectSize,
-                        'width'  => ($column - $minSize) * $rectSize - $startX,
-                        'height' => $rectSize,
+                        'y'      => ($row - $minSize - $this->overlap) * $rectSize,
+                        'width'  => ($column - $minSize + $this->overlap) * $rectSize - $startX,
+                        'height' => (1 + $this->overlap) * $rectSize,
                         'fill'   => $color,
                     ]
                 );
