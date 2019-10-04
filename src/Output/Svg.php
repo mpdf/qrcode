@@ -9,12 +9,12 @@ class Svg
 {
     /**
      * @param QrCode $qrCode     QR code instance
-     * @param int[]  $background RGB background color
-     * @param int[]  $color      RGB foreground and border color
+     * @param string $background the background color, e. g. "white", "rgb(0,0,0)" or "cmyk(0,0,0,0)"
+     * @param string $color      the foreground and border color, e. g. "black", "rgb(255,255,255)" or "cmyk(0,0,0,100)"
      *
      * @return string Binary image data
      */
-    public function output(QrCode $qrCode, $background = [255, 255, 255], $color = [0, 0, 0])
+    public function output(QrCode $qrCode, $background = 'white', $color = 'black')
     {
         $qrSize = $qrCode->getQrSize();
         $final  = $qrCode->getFinal();
@@ -43,20 +43,8 @@ class Svg
                 'y'      => 0,
                 'width'  => $qrSize,
                 'height' => $qrSize,
-                'fill'   => sprintf(
-                    'rgb(%d, %d, %d)',
-                    $background[0],
-                    $background[1],
-                    $background[2]
-                ),
+                'fill'   => $background,
             ]
-        );
-
-        $foregroundColor = sprintf(
-            'rgb(%d, %d, %d)',
-            $color[0],
-            $color[1],
-            $color[2]
         );
 
         for ($row = $minSize; $row < $maxSize; $row++) {
@@ -76,7 +64,7 @@ class Svg
                             'y'      => ($row - $minSize) * $rectSize,
                             'width'  => ($column - $minSize) * $rectSize - $startX,
                             'height' => $rectSize,
-                            'fill'   => $foregroundColor,
+                            'fill'   => $color,
                         ]
                     );
                     $startX = null;
@@ -92,7 +80,7 @@ class Svg
                         'y'      => ($row - $minSize) * $rectSize,
                         'width'  => ($column - $minSize) * $rectSize - $startX,
                         'height' => $rectSize,
-                        'fill'   => $foregroundColor,
+                        'fill'   => $color,
                     ]
                 );
             }
