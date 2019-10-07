@@ -8,30 +8,6 @@ use SimpleXMLElement;
 class Svg
 {
     /**
-     * We need a little bit of overlap of each rectangle
-     * because otherwise you'll start to see fine lines between each rectangle.
-     *
-     * @var float
-     */
-    protected $overlap = 0.02;
-
-    /**
-     * @return float
-     */
-    public function getOverlap()
-    {
-        return $this->overlap;
-    }
-
-    /**
-     * @param float $overlap
-     */
-    public function setOverlap($overlap)
-    {
-        $this->overlap = $overlap;
-    }
-
-    /**
      * @param QrCode $qrCode     QR code instance
      * @param int    $size       The width / height of the resulting SVG
      * @param string $background The background color, e. g. "white", "rgb(0,0,0)" or "cmyk(0,0,0,0)"
@@ -75,10 +51,12 @@ class Svg
         for ($row = $minSize; $row < $maxSize; $row++) {
             // Simple compression: pixels in a row will be compressed into the same rectangle.
             $startX = null;
+            $y      = ($row - $minSize) * $rectSize;
             for ($column = $minSize; $column < $maxSize; $column++) {
+                $x = ($column - $minSize) * $rectSize;
                 if ($final[$column + $row * $qrSize + 1]) {
                     if ($startX === null) {
-                        $startX = ($column - $minSize - $this->overlap) * $rectSize;
+                        $startX = $x;
                     }
                 } elseif ($startX !== null) {
                     $this->addChild(
@@ -86,9 +64,9 @@ class Svg
                         'rect',
                         [
                             'x'      => $startX,
-                            'y'      => ($row - $minSize - $this->overlap) * $rectSize,
-                            'width'  => ($column - $minSize + $this->overlap) * $rectSize - $startX,
-                            'height' => (1 + $this->overlap) * $rectSize,
+                            'y'      => $y,
+                            'width'  => $x - $startX,
+                            'height' => $rectSize,
                             'fill'   => $color,
                         ]
                     );
@@ -97,14 +75,60 @@ class Svg
             }
 
             if ($startX !== null) {
+                $x = ($column - $minSize) * $rectSize;
                 $this->addChild(
                     $svg,
                     'rect',
                     [
                         'x'      => $startX,
-                        'y'      => ($row - $minSize - $this->overlap) * $rectSize,
-                        'width'  => ($column - $minSize + $this->overlap) * $rectSize - $startX,
-                        'height' => (1 + $this->overlap) * $rectSize,
+                        'y'      => $y,
+                        'width'  => $x - $startX,
+                        'height' => $rectSize,
+                        'fill'   => $color,
+                    ]
+                );
+            }
+        }
+
+        for ($column = $minSize; $column < $maxSize; $column++) {
+            // Simple compression: pixels in a column will be compressed into the same rectangle.
+            $startY = null;
+            $x      = ($column - $minSize) * $rectSize;
+            for ($row = $minSize; $row < $maxSize; $row++) {
+                $y = ($row - $minSize) * $rectSize;
+                if ($final[$column + $row * $qrSize + 1]) {
+                    if ($startY === null) {
+                        $startY = $y;
+                    }
+                } elseif ($startY !== null) {
+                    if ($startY < $y - $rectSize) {
+                        // Only drawn 2+ columns
+                        $this->addChild(
+                            $svg,
+                            'rect',
+                            [
+                                'x'      => $x,
+                                'y'      => $startY,
+                                'width'  => $rectSize,
+                                'height' => $y - $startY,
+                                'fill'   => $color,
+                            ]
+                        );
+                    }
+                    $startY = null;
+                }
+            }
+
+            if ($startY !== null) {
+                $y = ($row - $minSize) * $rectSize;
+                $this->addChild(
+                    $svg,
+                    'rect',
+                    [
+                        'x'      => $x,
+                        'y'      => $startY,
+                        'width'  => $rectSize,
+                        'height' => $y - $startY,
                         'fill'   => $color,
                     ]
                 );
