@@ -20,7 +20,7 @@ class Svg
      */
     public function getOverlap()
     {
-        return $this->overlapPercent;
+        return $this->overlap;
     }
 
     /**
