@@ -45,22 +45,22 @@ class QrCodeTest extends \PHPUnit\Framework\TestCase
 		$this->assertFalse($qrCode->isBorderDisabled());
 	}
 
-    public function testInvalidErrorCorrection()
+	public function testInvalidErrorCorrection()
 	{
-        $this->expectException(\Mpdf\QrCode\QrCodeException::class);
-        new QrCode('Invalid ECC', 'X');
+		$this->expectException(\Mpdf\QrCode\QrCodeException::class);
+		new QrCode('Invalid ECC', 'X');
 	}
 
-    public function testEmptyValue()
+	public function testEmptyValue()
 	{
-        $this->expectException(\Mpdf\QrCode\QrCodeException::class);
-        new QrCode('');
+		$this->expectException(\Mpdf\QrCode\QrCodeException::class);
+		new QrCode('');
 	}
 
-    public function testTooLongData()
+	public function testTooLongData()
 	{
-        $this->expectException(\Mpdf\QrCode\QrCodeException::class);
-        new QrCode(base64_encode(random_bytes(1024 * 3)));
+		$this->expectException(\Mpdf\QrCode\QrCodeException::class);
+		new QrCode(base64_encode(random_bytes(1024 * 3)));
 	}
 
 }

@@ -14,9 +14,9 @@ class MpdfTest extends \PHPUnit\Framework\TestCase
 
 	use MockeryPHPUnitIntegration;
 
-    /**
-     * @doesNotPerformAssertions
-     */
+	/**
+	 * @doesNotPerformAssertions
+	 */
 	public function testOutputL()
 	{
 		$code = new QrCode('LOREM IPSUM 2019');
@@ -31,12 +31,12 @@ class MpdfTest extends \PHPUnit\Framework\TestCase
 
 		$output->output($code, $mpdf, 0, 0, 0);
 
-        Mockery::close();
+		Mockery::close();
 	}
 
-    /**
-     * @doesNotPerformAssertions
-     */
+	/**
+	 * @doesNotPerformAssertions
+	 */
 	public function testOutputLDisableBorder()
 	{
 		$code = new QrCode('LOREM IPSUM 2019');
@@ -53,12 +53,12 @@ class MpdfTest extends \PHPUnit\Framework\TestCase
 
 		$output->output($code, $mpdf, 0, 0, 0);
 
-        Mockery::close();
+		Mockery::close();
 	}
 
-    /**
-     * @doesNotPerformAssertions
-     */
+	/**
+	 * @doesNotPerformAssertions
+	 */
 	public function testOutputQ()
 	{
 		$code = new QrCode('LOREM IPSUM 2019', QrCode::ERROR_CORRECTION_QUARTILE);
@@ -73,12 +73,12 @@ class MpdfTest extends \PHPUnit\Framework\TestCase
 
 		$output->output($code, $mpdf, 0, 0, 0);
 
-        Mockery::close();
+		Mockery::close();
 	}
 
-    /**
-     * @doesNotPerformAssertions
-     */
+	/**
+	 * @doesNotPerformAssertions
+	 */
 	public function testOutputQDisableBorder()
 	{
 		$code = new QrCode('LOREM IPSUM 2019', QrCode::ERROR_CORRECTION_QUARTILE);
@@ -95,7 +95,7 @@ class MpdfTest extends \PHPUnit\Framework\TestCase
 
 		$output->output($code, $mpdf, 0, 0, 0);
 
-        Mockery::close();
+		Mockery::close();
 	}
 
 }
