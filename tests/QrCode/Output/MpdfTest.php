@@ -27,6 +27,8 @@ class MpdfTest extends \PHPUnit\Framework\TestCase
 		$output = new Mpdf();
 
 		$output->output($code, $mpdf, 0, 0, 0);
+
+        Mockery::close();
 	}
 
 	public function testOutputLDisableBorder()
@@ -44,6 +46,8 @@ class MpdfTest extends \PHPUnit\Framework\TestCase
 		$output = new Mpdf();
 
 		$output->output($code, $mpdf, 0, 0, 0);
+
+        Mockery::close();
 	}
 
 	public function testOutputQ()
@@ -59,6 +63,8 @@ class MpdfTest extends \PHPUnit\Framework\TestCase
 		$output = new Mpdf();
 
 		$output->output($code, $mpdf, 0, 0, 0);
+
+        Mockery::close();
 	}
 
 	public function testOutputQDisableBorder()
@@ -76,6 +82,8 @@ class MpdfTest extends \PHPUnit\Framework\TestCase
 		$output = new Mpdf();
 
 		$output->output($code, $mpdf, 0, 0, 0);
+
+        Mockery::close();
 	}
 
 }
