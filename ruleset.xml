@@ -34,4 +34,7 @@
             <property name="absoluteLineLimit" value="200"/>
         </properties>
     </rule>
+    <rule ref="Squiz.NamingConventions.ValidVariableName">
+        <exclude name="Squiz.NamingConventions.ValidVariableName.PrivateNoUnderscore" />
+    </rule>
 </ruleset>

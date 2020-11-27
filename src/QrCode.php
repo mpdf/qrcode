@@ -515,61 +515,59 @@ class QrCode
 
 	private function makeECC()
 	{
-		// data file of caluclatin tables for RS encoding
-		$rs_cal_table_array = [];
+		// calculating tables for RS encoding
+		$rsTable = [];
 
 		$filename = __DIR__ . '/../data/rsc' . $this->rsEccCodewords . '.dat';
 
 		$fp0 = fopen($filename, 'rb');
 		for ($i = 0; $i < 256; $i++) {
-			$rs_cal_table_array[$i] = fread($fp0, $this->rsEccCodewords);
+			$rsTable[$i] = fread($fp0, $this->rsEccCodewords);
 		}
 		fclose($fp0);
 
-		$max_data_codewords = count($this->wordData);
-
 		// preparation
 		$j = 0;
-		$rs_block_number = 0;
-		$rs_temp[0] = '';
+		$rsBlockNumber = 0;
+		$rsTemp[0] = '';
 
-		for ($i = 0; $i < $max_data_codewords; $i++) {
-			$rs_temp[$rs_block_number] .= chr($this->wordData[$i]);
+		foreach ($this->wordData as $wordItem) {
+			$rsTemp[$rsBlockNumber] .= chr($wordItem);
 			$j++;
-			if ($j >= $this->rsBlockOrder[$rs_block_number + 1] - $this->rsEccCodewords) {
+			if ($j >= $this->rsBlockOrder[$rsBlockNumber + 1] - $this->rsEccCodewords) {
 				$j = 0;
-				$rs_block_number++;
-				$rs_temp[$rs_block_number] = '';
+				$rsBlockNumber++;
+				$rsTemp[$rsBlockNumber] = '';
 			}
 		}
 
-		// make
-		$rs_block_order_num = count($this->rsBlockOrder);
+		$rsBlockOrderNum = count($this->rsBlockOrder);
 		$data = [];
 
-		for ($rs_block_number = 0; $rs_block_number < $rs_block_order_num; $rs_block_number++) {
-			$rs_codewords = $this->rsBlockOrder[$rs_block_number + 1];
-			$rs_data_codewords = $rs_codewords - $this->rsEccCodewords;
+		for ($rsBlockNumber = 0; $rsBlockNumber < $rsBlockOrderNum; $rsBlockNumber++) {
+			$rsCodewords = $this->rsBlockOrder[$rsBlockNumber + 1];
+			$rsDataCodewords = $rsCodewords - $this->rsEccCodewords;
 
-			$rstemp = $rs_temp[$rs_block_number] . str_repeat(chr(0), $this->rsEccCodewords);
-			$padding_data = str_repeat(chr(0), $rs_data_codewords);
+			$rst = $rsTemp[$rsBlockNumber] . str_repeat(chr(0), $this->rsEccCodewords);
+			$paddingData = str_repeat(chr(0), $rsDataCodewords);
 
-			$j = $rs_data_codewords;
+			$j = $rsDataCodewords;
 			while ($j > 0) {
-				$first = ord($rstemp[0]);
+				$first = ord($rst[0]);
 
 				if ($first) {
-					$left_chr = substr($rstemp, 1);
-					$cal = $rs_cal_table_array[$first] . $padding_data;
-					$rstemp = $left_chr ^ $cal;
+					$leftChr = substr($rst, 1);
+					$cal = $rsTable[$first] . $paddingData;
+					$rst = $leftChr ^ $cal;
 				} else {
-					$rstemp = substr($rstemp, 1);
+					$rst = substr($rst, 1);
 				}
 				$j--;
 			}
 
-			$data[] = unpack('C*', $rstemp);
+			$data[] = unpack('C*', $rst);
 		}
+
 
 		$this->wordData = array_merge($this->wordData, ...$data);
 	}
@@ -583,98 +581,99 @@ class QrCode
 		for ($i = 0; $i < $this->totalWordLimit; $i++) {
 			$word = $this->wordData[$i];
 			for ($j = 8; $j > 0; $j--) {
-				$bit_pos = ($i << 3) + $j;
-				$this->matrix[$this->matrixXArray[$bit_pos]][$this->matrixYArray[$bit_pos]] = ((255 * ($word & 1)) ^ $this->maskArray[$bit_pos]);
+				$bitPos = ($i << 3) + $j;
+				$this->matrix[$this->matrixXArray[$bitPos]][$this->matrixYArray[$bitPos]] = ((255 * ($word & 1)) ^ $this->maskArray[$bitPos]);
 				$word >>= 1;
 			}
 		}
 
 		for ($k = $this->matrixRemain; $k > 0; $k--) {
-			$bit_pos = $k + ($this->totalWordLimit << 3);
-			$this->matrix[$this->matrixXArray[$bit_pos]][$this->matrixYArray[$bit_pos]] = (255 ^ $this->maskArray[$bit_pos]);
+			$bitPos = $k + ($this->totalWordLimit << 3);
+			$this->matrix[$this->matrixXArray[$bitPos]][$this->matrixYArray[$bitPos]] = (255 ^ $this->maskArray[$bitPos]);
 		}
 
 		// mask select
-		$min_demerit_score = 0;
-		$hor_master = '';
-		$ver_master = '';
+		$minDemeritScore = 0;
+		$hMaster = '';
+		$vMaster = '';
 		$k = 0;
 		while ($k < $this->size) {
 			$l = 0;
 			while ($l < $this->size) {
-				$hor_master .= chr($this->matrix[$l][$k]);
-				$ver_master .= chr($this->matrix[$k][$l]);
+				$hMaster .= chr($this->matrix[$l][$k]);
+				$vMaster .= chr($this->matrix[$k][$l]);
 				$l++;
 			}
 			$k++;
 		}
 
 		$i = 0;
-		$all_matrix = $this->size * $this->size;
+		$allMatrix = $this->size * $this->size;
 
-		$mask_number = 0;
+		$maskNumber = 0;
 		while ($i < 8) {
-			$demerit_n1 = 0;
-			$ptn_temp = [];
-			$bit = 1 << $i;
-			$bit_r = (~$bit) & 255;
-			$bit_mask = str_repeat(chr($bit), $all_matrix);
-			$hor = $hor_master & $bit_mask;
-			$ver = $ver_master & $bit_mask;
 
-			$ver_shift1 = $ver . str_repeat(chr(170), $this->size);
-			$ver_shift2 = str_repeat(chr(170), $this->size) . $ver;
-			$ver_shift1_0 = $ver . str_repeat(chr(0), $this->size);
-			$ver_shift2_0 = str_repeat(chr(0), $this->size) . $ver;
-			$ver_or = chunk_split(~($ver_shift1 | $ver_shift2), $this->size, chr(170));
-			$ver_and = chunk_split(~($ver_shift1_0 & $ver_shift2_0), $this->size, chr(170));
+			$demeritN1 = 0;
+			$ptnTemp = [];
+			$bit = 1 << $i;
+			$bitR = (~$bit) & 255;
+			$bitMask = str_repeat(chr($bit), $allMatrix);
+			$hor = $hMaster & $bitMask;
+			$ver = $vMaster & $bitMask;
+
+			$vShift1 = $ver . str_repeat(chr(170), $this->size);
+			$vShift2 = str_repeat(chr(170), $this->size) . $ver;
+			$vShift10 = $ver . str_repeat(chr(0), $this->size);
+			$vShift20 = str_repeat(chr(0), $this->size) . $ver;
+			$verOr = chunk_split(~($vShift1 | $vShift2), $this->size, chr(170));
+			$verAnd = chunk_split(~($vShift10 & $vShift20), $this->size, chr(170));
 
 			$hor = chunk_split(~$hor, $this->size, chr(170));
 			$ver = chunk_split(~$ver, $this->size, chr(170));
 			$hor = $hor . chr(170) . $ver;
 
-			$n1_search = '/' . str_repeat(chr(255), 5) . '+|' . str_repeat(chr($bit_r), 5) . '+/';
-			$n3_search = chr($bit_r) . chr(255) . chr($bit_r) . chr($bit_r) . chr($bit_r) . chr(255) . chr($bit_r);
+			$n1Search = '/' . str_repeat(chr(255), 5) . '+|' . str_repeat(chr($bitR), 5) . '+/';
+			$n3Search = chr($bitR) . chr(255) . chr($bitR) . chr($bitR) . chr($bitR) . chr(255) . chr($bitR);
 
-			$demerit_n3 = substr_count($hor, $n3_search) * 40;
-			$demerit_n4 = floor(abs(((100 * (substr_count($ver, chr($bit_r)) / $this->byteCount)) - 50) / 5)) * 10;
+			$demeritN3 = substr_count($hor, $n3Search) * 40;
+			$demeritN4 = floor(abs(((100 * (substr_count($ver, chr($bitR)) / $this->byteCount)) - 50) / 5)) * 10;
 
-			$n2_search1 = '/' . chr($bit_r) . chr($bit_r) . '+/';
-			$n2_search2 = '/' . chr(255) . chr(255) . '+/';
-			$demerit_n2 = 0;
+			$n2Search1 = '/' . chr($bitR) . chr($bitR) . '+/';
+			$n2Search2 = '/' . chr(255) . chr(255) . '+/';
+			$demeritN2 = 0;
 
-			preg_match_all($n2_search1, $ver_and, $ptn_temp);
-			foreach ($ptn_temp[0] as $str_temp) {
-				$demerit_n2 += (strlen($str_temp) - 1);
+			preg_match_all($n2Search1, $verAnd, $ptnTemp);
+			foreach ($ptnTemp[0] as $strTemp) {
+				$demeritN2 += (strlen($strTemp) - 1);
 			}
 
-			$ptn_temp = [];
-			preg_match_all($n2_search2, $ver_or, $ptn_temp);
-			foreach ($ptn_temp[0] as $str_temp) {
-				$demerit_n2 += (strlen($str_temp) - 1);
+			$ptnTemp = [];
+			preg_match_all($n2Search2, $verOr, $ptnTemp);
+			foreach ($ptnTemp[0] as $strTemp) {
+				$demeritN2 += (strlen($strTemp) - 1);
 			}
-			$demerit_n2 *= 3;
+			$demeritN2 *= 3;
 
-			$ptn_temp = [];
+			$ptnTemp = [];
 
-			preg_match_all($n1_search, $hor, $ptn_temp);
-			foreach ($ptn_temp[0] as $str_temp) {
-				$demerit_n1 += (strlen($str_temp) - 2);
+			preg_match_all($n1Search, $hor, $ptnTemp);
+			foreach ($ptnTemp[0] as $strTemp) {
+				$demeritN1 += (strlen($strTemp) - 2);
 			}
-			$demerit_score = $demerit_n1 + $demerit_n2 + $demerit_n3 + $demerit_n4;
+			$demeritScore = $demeritN1 + $demeritN2 + $demeritN3 + $demeritN4;
 
-			if ($demerit_score <= $min_demerit_score || $i === 0) {
-				$mask_number = $i;
-				$min_demerit_score = $demerit_score;
+			if ($demeritScore <= $minDemeritScore || $i === 0) {
+				$maskNumber = $i;
+				$minDemeritScore = $demeritScore;
 			}
 
 			$i++;
 		}
 
-		$mask_content = 1 << $mask_number;
+		$maskContent = 1 << $maskNumber;
 
-		$format_information_value = (($this->ec << 3) | $mask_number);
-		$format_information_array = [
+		$formatInformationValue = (($this->ec << 3) | $maskNumber);
+		$formatInformationArray = [
 			'101010000010010', '101000100100101',
 			'101111001111100', '101101101001011', '100010111111001', '100000011001110',
 			'100111110010111', '100101010100000', '111011111000100', '111001011110011',
@@ -687,7 +686,7 @@ class QrCode
 		];
 
 		for ($i = 0; $i < 15; $i++) {
-			$content = (int) $format_information_array[$format_information_value][$i];
+			$content = (int) $formatInformationArray[$formatInformationValue][$i];
 
 			$this->matrix[$this->formatInformationX1[$i]][$this->formatInformationY1[$i]] = $content * 255;
 			$this->matrix[$this->formatInformationX2[$i + 1]][$this->formatInformationY2[$i + 1]] = $content * 255;
@@ -698,7 +697,7 @@ class QrCode
 
 		for ($x = 0; $x < $this->size; $x++) {
 			for ($y = 0; $y < $this->size; $y++) {
-				if ($this->matrix[$x][$y] & $mask_content) {
+				if ($this->matrix[$x][$y] & $maskContent) {
 					$this->final[($x + 4) + ($y + 4) * $this->qrSize + 1] = true;
 				}
 			}
