@@ -8,18 +8,22 @@ This is based on QrCode library bundled with mPDF until v8.0, made by Laurent Mi
 
 ## Installation
 
-    $ composer require mpdf/qrcode
+```sh
+$ composer require mpdf/qrcode
+```
 
 ## Usage
 
-    <?php
+```php
+<?php
 
-    use Mpdf\QrCode\QrCode;
-    use Mpdf\QrCode\Output;
+use Mpdf\QrCode\QrCode;
+use Mpdf\QrCode\Output;
 
-    $qrCode = new QrCode('Lorem ipsum sit dolor');
+$qrCode = new QrCode('Lorem ipsum sit dolor');
 
-    $output = new Output\Png();
+$output = new Output\Png();
 
-    // Save black on white PNG image 100px wide to filename.png
-    $output->output($qrCode, 100, [255, 255, 255], [0, 0, 0], 'filename.png');
+// Save black on white PNG image 100px wide to filename.png
+$output->output($qrCode, 100, [255, 255, 255], [0, 0, 0], 'filename.png');
+```
