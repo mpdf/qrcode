@@ -39,7 +39,8 @@
 	},
 
 	"suggest": {
-		"ext-gd": "To output QR codes to PNG files"
+		"ext-gd": "To output QR codes to PNG files",
+		"ext-simplexml": "To output QR codes to SVG files"
 	},
 
 	"autoload": {
