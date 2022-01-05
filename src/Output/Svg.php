@@ -7,6 +7,7 @@ use SimpleXMLElement;
 
 class Svg
 {
+	
 	/**
 	 * @param QrCode $qrCode	 QR code instance
 	 * @param int	$size	   The width / height of the resulting SVG
@@ -51,7 +52,7 @@ class Svg
 		for ($row = $minSize; $row < $maxSize; $row++) {
 			// Simple compression: pixels in a row will be compressed into the same rectangle.
 			$startX = null;
-			$y	  = ($row - $minSize) * $rectSize;
+			$y = ($row - $minSize) * $rectSize;
 			for ($column = $minSize; $column < $maxSize; $column++) {
 				$x = ($column - $minSize) * $rectSize;
 				if ($final[$column + $row * $qrSize + 1]) {

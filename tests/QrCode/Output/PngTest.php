@@ -7,7 +7,7 @@ use Mpdf\QrCode\QrCode;
 /**
  * @group unit
  */
-class PngTest extends \PHPUnit\Framework\TestCase
+class PngTest extends \Yoast\PHPUnitPolyfills\TestCases\TestCase
 {
 
 	public function testOutput()
