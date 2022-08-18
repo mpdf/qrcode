@@ -136,7 +136,7 @@ class Svg
 			}
 		}
 
-		return $svg->asXML();
+		return str_replace('<?xml version="1.0"?>', '', $svg->asXML());
 	}
 
 
