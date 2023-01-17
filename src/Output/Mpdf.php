@@ -16,8 +16,8 @@ class Mpdf
 	 * @param float $x position X
 	 * @param float $y position Y
 	 * @param float $w QR code width
-	 * @param int[] $background RGB background color
-	 * @param int[] $color RGB foreground and border color
+	 * @param int[] $background RGB/CMYK background color
+	 * @param int[] $color RGB/CMYK foreground and border color
 	 */
 	public function output(QrCode $qrCode, MpdfObject $mpdf, $x, $y, $w, $background = [255, 255, 255], $color = [0, 0, 0])
 	{
@@ -25,8 +25,11 @@ class Mpdf
 		$qrSize = $qrCode->getQrSize();
 		$s = $size / $qrCode->getQrDimensions();
 
-		$mpdf->SetDrawColor($color[0], $color[1], $color[2]);
-		$mpdf->SetFillColor($background[0], $background[1], $background[2]);
+        $background = array_slice($background, 0, 4);
+        $color = array_slice($color, 0, 4);
+
+		$mpdf->SetDrawColor(...$color);
+		$mpdf->SetFillColor(...$background);
 
 		if ($qrCode->isBorderDisabled()) {
 			$minSize = 4;
@@ -38,7 +41,7 @@ class Mpdf
 			$mpdf->Rect($x, $y, $size, $size, 'FD');
 		}
 
-		$mpdf->SetFillColor($color[0], $color[1], $color[2]);
+		$mpdf->SetFillColor(...$color);
 
 		$final = $qrCode->getFinal();
 
