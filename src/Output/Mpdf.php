@@ -25,8 +25,8 @@ class Mpdf
 		$qrSize = $qrCode->getQrSize();
 		$s = $size / $qrCode->getQrDimensions();
 
-        $background = array_slice($background, 0, 4);
-        $color = array_slice($color, 0, 4);
+		$background = array_slice($background, 0, 4);
+		$color = array_slice($color, 0, 4);
 
 		$mpdf->SetDrawColor(...$color);
 		$mpdf->SetFillColor(...$background);
