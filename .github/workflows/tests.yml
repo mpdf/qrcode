@@ -48,12 +48,6 @@ jobs:
           extensions: "mbstring, gd, bcmath, bz2"
           tools: composer:v2
           ini-values: error_reporting=-1
-          
-      - name: "Update dependencies"
-        if: "${{ matrix.php-version >= '8.4' }}"
-        run: |
-          composer remove --dev mockery/mockery --no-interaction --no-progress 
-          composer require --dev mockery/mockery --no-interaction --no-progress
       
       - name: "Install dependencies"
         run: "composer install --no-interaction --no-progress"
