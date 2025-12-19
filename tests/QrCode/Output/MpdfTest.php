@@ -75,6 +75,24 @@ class MpdfTest extends \Yoast\PHPUnitPolyfills\TestCases\TestCase
 		$output->output($code, $mpdf, 0, 0, 0);
 	}
 
+	public function testOutputCMYK() 
+	{
+		$color = [1,2,3,4];
+		$background = [5,6,7,8];
+
+		$code = new QrCode('LOREM IPSUM 2019', QrCode::ERROR_CORRECTION_QUARTILE);
+
+		$mpdf = Mockery::mock('Mpdf\Mpdf');
+
+		$mpdf->shouldReceive('SetDrawColor')->with(1,2,3,4)->once();
+		$mpdf->shouldReceive('SetFillColor')->with(1,2,3,4)->once();
+		$mpdf->shouldReceive('SetFillColor')->with(5,6,7,8)->once();
+		$mpdf->shouldReceive('Rect')->times(217);
+
+		$output = new Mpdf();
+		$output->output($code, $mpdf, 0, 0, 0, $background, $color);
+	}
+
 	protected function tear_down()
 	{
 		parent::tear_down();
